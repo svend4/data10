@@ -46,11 +46,29 @@ async def health_check():
     }
 
 
-# TODO: подключить роутеры
-# from app.api import blocks, documents, search
-# app.include_router(blocks.router, prefix="/api/blocks", tags=["blocks"])
-# app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
-# app.include_router(search.router, prefix="/api/search", tags=["search"])
+# Подключить роутеры
+from app.api import blocks, documents
+
+app.include_router(blocks.router, prefix="/api/blocks", tags=["blocks"])
+app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
+
+
+# Lifecycle events
+from app.services import block_service
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Инициализация при запуске"""
+    await block_service.initialize()
+    print("✅ Services initialized")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Очистка при остановке"""
+    await block_service.shutdown()
+    print("👋 Services shutdown")
 
 
 if __name__ == "__main__":
