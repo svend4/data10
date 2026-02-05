@@ -17,6 +17,8 @@ from app.models import (
 from app.repositories import mongo_repo
 from app.services.block_service import block_service
 from app.services.rule_engine import rule_engine
+from app.utils.exporters import docx_exporter
+from io import BytesIO
 
 
 class AssemblyService:
@@ -232,6 +234,19 @@ class AssemblyService:
             lines.append(f"{doc_block.content}\n")
 
         return "\n".join(lines)
+
+    async def export_document_docx(self, document_id: str) -> BytesIO:
+        """
+        Экспорт документа в DOCX формат
+
+        :param document_id: ID документа
+        :return: BytesIO с DOCX файлом
+        """
+        document = await self.get_document(document_id)
+        if not document:
+            raise ValueError(f"Document {document_id} not found")
+
+        return docx_exporter.export_document(document)
 
 
 # Singleton instance

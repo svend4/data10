@@ -1,0 +1,425 @@
+{
+  "template": {
+    "id": "widerspruch_standard_v1",
+    "name": "Widerspruch gegen Ablehnungsbescheid SGB IX",
+    "description": "Standardvorlage für Widerspruch gegen Ablehnungsbescheid nach SGB IX - Leistungen zur Teilhabe",
+    "version": "1.0",
+    "sections": [
+      {
+        "name": "absender",
+        "description": "Absenderinformationen",
+        "blocks": ["widerspruch_absender"],
+        "conditions": {}
+      },
+      {
+        "name": "empfaenger",
+        "description": "Empfängerinformationen",
+        "blocks": ["widerspruch_empfaenger"],
+        "conditions": {}
+      },
+      {
+        "name": "betreff",
+        "description": "Betreffzeile mit Aktenzeichen",
+        "blocks": ["widerspruch_betreff"],
+        "conditions": {}
+      },
+      {
+        "name": "einleitung",
+        "description": "Einleitung und Widerspruchserklärung",
+        "blocks": ["widerspruch_einleitung"],
+        "conditions": {}
+      },
+      {
+        "name": "antrag",
+        "description": "Konkreter Antrag",
+        "blocks": ["widerspruch_antrag"],
+        "conditions": {}
+      },
+      {
+        "name": "rechtsgrundlage_sgb9_para5",
+        "description": "§ 5 SGB IX - Leistungen zur Teilhabe",
+        "blocks": ["sgb9_para5"],
+        "conditions": {
+          "include_sgb9_para5": true
+        }
+      },
+      {
+        "name": "rechtsgrundlage_sgb9_para29",
+        "description": "§ 29 SGB IX - Persönliches Budget",
+        "blocks": ["sgb9_para29"],
+        "conditions": {
+          "include_sgb9_para29": true
+        }
+      },
+      {
+        "name": "begruendung_mangelnde_begruendung",
+        "description": "Begründungsmangel des Bescheids",
+        "blocks": ["widerspruch_grund_begruendung"],
+        "conditions": {
+          "grund_type": "mangelnde_begruendung"
+        }
+      },
+      {
+        "name": "begruendung_rechtsverletzung",
+        "description": "Rechtsverletzung durch Ablehnung",
+        "blocks": ["widerspruch_grund_rechtsverletzung"],
+        "conditions": {
+          "grund_type": "rechtsverletzung"
+        }
+      },
+      {
+        "name": "begruendung_tatsachen",
+        "description": "Falsche Tatsachenfeststellung",
+        "blocks": ["widerspruch_grund_tatsachen"],
+        "conditions": {
+          "grund_type": "falsche_tatsachen"
+        }
+      },
+      {
+        "name": "begruendung_ermessen",
+        "description": "Ermessensfehler",
+        "blocks": ["widerspruch_grund_ermessen"],
+        "conditions": {
+          "grund_type": "ermessensfehler"
+        }
+      },
+      {
+        "name": "fristwahrung",
+        "description": "Fristwahrungshinweis",
+        "blocks": ["widerspruch_frist"],
+        "conditions": {
+          "include_frist": true
+        }
+      },
+      {
+        "name": "akteneinsicht",
+        "description": "Antrag auf Akteneinsicht",
+        "blocks": ["widerspruch_akteneinsicht"],
+        "conditions": {
+          "request_akteneinsicht": true
+        }
+      },
+      {
+        "name": "schluss",
+        "description": "Schlussformel",
+        "blocks": ["widerspruch_schluss"],
+        "conditions": {}
+      }
+    ],
+    "metadata": {
+      "category": "widerspruch",
+      "subcategory": "sozialrecht",
+      "law": "SGB IX",
+      "author": "System",
+      "language": "de"
+    }
+  },
+  "blocks": [
+    {
+      "id": "widerspruch_absender",
+      "type": "custom",
+      "title": "Absender",
+      "content": "[VORNAME] [NACHNAME]\n[STRASSE] [HAUSNUMMER]\n[PLZ] [STADT]\n\nTelefon: [TELEFON]\nE-Mail: [EMAIL]",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "absender",
+        "tags": ["widerspruch", "absender", "kontakt"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": [],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_empfaenger",
+      "type": "custom",
+      "title": "Empfänger",
+      "content": "[BEHÖRDE]\n[ABTEILUNG]\n[STRASSE] [HAUSNUMMER]\n[PLZ] [STADT]",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "empfänger",
+        "tags": ["widerspruch", "empfänger", "behörde"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": [],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_betreff",
+      "type": "custom",
+      "title": "Betreff",
+      "content": "Betreff: Widerspruch gegen Bescheid vom [BESCHEID_DATUM]\nIhr Aktenzeichen: [AKTENZEICHEN]",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "betreff",
+        "tags": ["widerspruch", "betreff", "aktenzeichen"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": [],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_einleitung",
+      "type": "custom",
+      "title": "Einleitung",
+      "content": "Sehr geehrte Damen und Herren,\n\nhiermit lege ich Widerspruch gegen den Bescheid vom [BESCHEID_DATUM] mit dem Aktenzeichen [AKTENZEICHEN] ein. Mit diesem Bescheid wurde mein Antrag auf [LEISTUNGSART] abgelehnt.",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "einleitung",
+        "tags": ["widerspruch", "einleitung", "förmlich"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": [],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_antrag",
+      "type": "custom",
+      "title": "Antrag",
+      "content": "Ich beantrage,\n\nden angefochtenen Bescheid aufzuheben und mir die beantragten Leistungen zur Teilhabe gemäß §§ 5, 29 SGB IX zu bewilligen.",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "antrag",
+        "tags": ["widerspruch", "antrag", "rechtsbegehren"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": ["sgb9_para5", "sgb9_para29"],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_grund_begruendung",
+      "type": "custom",
+      "title": "Begründung: Mangelnde Begründung",
+      "content": "Begründung:\n\nDer angefochtene Bescheid ist rechtswidrig und verletzt mich in meinen Rechten. Die Ablehnung ist nicht ausreichend begründet. Es fehlt eine nachvollziehbare Darlegung der rechtlichen und tatsächlichen Gründe, warum die beantragte Leistung nicht gewährt werden soll. Eine hinreichende Begründung ist jedoch nach § 35 SGB X erforderlich.",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "begründung",
+        "grund_type": "mangelnde_begruendung",
+        "tags": ["widerspruch", "begründung", "begründungsmangel", "§35 SGB X"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": [],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_grund_rechtsverletzung",
+      "type": "custom",
+      "title": "Begründung: Rechtsverletzung",
+      "content": "Begründung:\n\nDer angefochtene Bescheid ist rechtswidrig und verletzt mich in meinen Rechten. Nach § 5 SGB IX habe ich als Mensch mit Behinderung Anspruch auf Leistungen zur Teilhabe am Leben in der Gesellschaft. Die Voraussetzungen für die Leistungsgewährung sind erfüllt. Die Ablehnung verstößt gegen die gesetzlichen Vorgaben des SGB IX.",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "begründung",
+        "grund_type": "rechtsverletzung",
+        "tags": ["widerspruch", "begründung", "rechtsverletzung", "SGB IX"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": ["sgb9_para5"],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_grund_tatsachen",
+      "type": "custom",
+      "title": "Begründung: Falsche Tatsachen",
+      "content": "Begründung:\n\nDer angefochtene Bescheid beruht auf einer fehlerhaften Tatsachenfeststellung. Die der Entscheidung zugrunde gelegten Tatsachen sind unvollständig bzw. unzutreffend ermittelt worden. [KONKRETE DARLEGUNG DER FALSCHEN TATSACHEN]",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "begründung",
+        "grund_type": "falsche_tatsachen",
+        "tags": ["widerspruch", "begründung", "tatsachenfeststellung"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": [],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_grund_ermessen",
+      "type": "custom",
+      "title": "Begründung: Ermessensfehler",
+      "content": "Begründung:\n\nDer angefochtene Bescheid leidet an einem Ermessensfehler. Das mir nach § 5 SGB IX zustehende Ermessen wurde nicht ausgeübt bzw. fehlerhaft ausgeübt. Die Ermessenserwägungen sind nicht nachvollziehbar und berücksichtigen nicht alle relevanten Umstände meines Einzelfalls.",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "begründung",
+        "grund_type": "ermessensfehler",
+        "tags": ["widerspruch", "begründung", "ermessen", "ermessensfehler"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": ["sgb9_para5"],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_frist",
+      "type": "custom",
+      "title": "Fristwahrung",
+      "content": "Ich weise darauf hin, dass dieser Widerspruch form- und fristgerecht innerhalb der Monatsfrist des § 84 Abs. 1 SGG eingelegt wird.",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "frist",
+        "tags": ["widerspruch", "frist", "§84 SGG"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": [],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_akteneinsicht",
+      "type": "custom",
+      "title": "Akteneinsicht",
+      "content": "Zugleich beantrage ich Akteneinsicht in die vollständige Verwaltungsakte, um meine Rechte sachgerecht wahrnehmen zu können. Bitte übersenden Sie mir Kopien der gesamten Akte oder teilen Sie mir mit, wann ich die Akte bei Ihnen einsehen kann.",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "akteneinsicht",
+        "tags": ["widerspruch", "akteneinsicht", "verwaltungsakte"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": [],
+        "related_to": []
+      }
+    },
+    {
+      "id": "widerspruch_schluss",
+      "type": "custom",
+      "title": "Schlussformel",
+      "content": "Die weitere Begründung behalte ich mir vor.\n\nMit freundlichen Grüßen\n\n\n[UNTERSCHRIFT]\n[VORNAME] [NACHNAME]",
+      "source": "Custom",
+      "level": 1,
+      "metadata": {
+        "category": "widerspruch",
+        "subcategory": "schluss",
+        "tags": ["widerspruch", "schluss", "unterschrift"]
+      },
+      "relationships": {
+        "parent_ids": [],
+        "child_ids": [],
+        "references": [],
+        "related_to": []
+      }
+    }
+  ],
+  "example_contexts": [
+    {
+      "name": "Vollständiger Widerspruch mit Rechtsverletzung",
+      "description": "Umfassender Widerspruch mit allen Elementen und Rechtsgrundlagen",
+      "context": {
+        "VORNAME": "Max",
+        "NACHNAME": "Mustermann",
+        "STRASSE": "Musterstraße",
+        "HAUSNUMMER": "123",
+        "PLZ": "12345",
+        "STADT": "Musterstadt",
+        "TELEFON": "0123-456789",
+        "EMAIL": "max.mustermann@example.com",
+        "BEHÖRDE": "Integrationsamt",
+        "ABTEILUNG": "Abteilung Rehabilitation",
+        "BESCHEID_DATUM": "15.01.2024",
+        "AKTENZEICHEN": "12345/2024",
+        "LEISTUNGSART": "Arbeitsassistenz nach § 185 SGB IX",
+        "include_sgb9_para5": true,
+        "include_sgb9_para29": false,
+        "grund_type": "rechtsverletzung",
+        "include_frist": true,
+        "request_akteneinsicht": true
+      }
+    },
+    {
+      "name": "Einfacher Widerspruch mit Begründungsmangel",
+      "description": "Widerspruch bei mangelnder Begründung ohne Rechtsgrundlagen",
+      "context": {
+        "VORNAME": "Maria",
+        "NACHNAME": "Müller",
+        "STRASSE": "Hauptstraße",
+        "HAUSNUMMER": "45",
+        "PLZ": "54321",
+        "STADT": "Beispielstadt",
+        "TELEFON": "0987-654321",
+        "EMAIL": "maria.mueller@example.com",
+        "BEHÖRDE": "Sozialamt",
+        "ABTEILUNG": "Sachgebiet Eingliederungshilfe",
+        "BESCHEID_DATUM": "20.12.2023",
+        "AKTENZEICHEN": "67890/2023",
+        "LEISTUNGSART": "Leistungen zur Teilhabe am Arbeitsleben",
+        "include_sgb9_para5": false,
+        "include_sgb9_para29": false,
+        "grund_type": "mangelnde_begruendung",
+        "include_frist": false,
+        "request_akteneinsicht": false
+      }
+    },
+    {
+      "name": "Widerspruch mit Persönlichem Budget",
+      "description": "Widerspruch bei Ablehnung eines Persönlichen Budgets",
+      "context": {
+        "VORNAME": "Thomas",
+        "NACHNAME": "Schmidt",
+        "STRASSE": "Bergstraße",
+        "HAUSNUMMER": "7",
+        "PLZ": "98765",
+        "STADT": "Neustadt",
+        "TELEFON": "0555-123456",
+        "EMAIL": "t.schmidt@example.com",
+        "BEHÖRDE": "Landkreis Musterland",
+        "ABTEILUNG": "Sozialamt",
+        "BESCHEID_DATUM": "03.02.2024",
+        "AKTENZEICHEN": "PB-2024-456",
+        "LEISTUNGSART": "Persönliches Budget nach § 29 SGB IX",
+        "include_sgb9_para5": true,
+        "include_sgb9_para29": true,
+        "grund_type": "rechtsverletzung",
+        "include_frist": true,
+        "request_akteneinsicht": true
+      }
+    }
+  ]
+}

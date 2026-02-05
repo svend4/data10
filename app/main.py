@@ -37,12 +37,60 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint для мониторинга"""
-    return {
-        "status": "healthy",
-        "services": {
-            "api": "up",
-            # TODO: добавить проверки для Neo4j, MongoDB, Elasticsearch
+    from app.repositories import mongo_repo, neo4j_repo
+    import time
+
+    start_time = time.time()
+    services_status = {}
+    overall_healthy = True
+
+    # Check API
+    services_status["api"] = {
+        "status": "up",
+        "latency_ms": 0
+    }
+
+    # Check MongoDB
+    try:
+        mongo_start = time.time()
+        mongo_repo.client.admin.command('ping')
+        mongo_latency = (time.time() - mongo_start) * 1000
+        services_status["mongodb"] = {
+            "status": "up",
+            "latency_ms": round(mongo_latency, 2),
+            "uri": mongo_repo.client.address[0] if mongo_repo.client.address else "unknown"
         }
+    except Exception as e:
+        overall_healthy = False
+        services_status["mongodb"] = {
+            "status": "down",
+            "error": str(e)
+        }
+
+    # Check Neo4j
+    try:
+        neo4j_start = time.time()
+        neo4j_repo.driver.verify_connectivity()
+        neo4j_latency = (time.time() - neo4j_start) * 1000
+        services_status["neo4j"] = {
+            "status": "up",
+            "latency_ms": round(neo4j_latency, 2)
+        }
+    except Exception as e:
+        overall_healthy = False
+        services_status["neo4j"] = {
+            "status": "down",
+            "error": str(e)
+        }
+
+    # Calculate total response time
+    total_latency = (time.time() - start_time) * 1000
+
+    return {
+        "status": "healthy" if overall_healthy else "degraded",
+        "timestamp": time.time(),
+        "latency_ms": round(total_latency, 2),
+        "services": services_status
     }
 
 

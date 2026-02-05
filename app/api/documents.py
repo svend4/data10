@@ -4,7 +4,7 @@ API endpoints для работы с документами
 
 from typing import List
 from fastapi import APIRouter, HTTPException, Query, Response
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, StreamingResponse
 from app.models import AssemblyRequest, AssemblyResponse, DocumentResponse
 from app.services import assembly_service
 
@@ -58,5 +58,21 @@ async def export_document_markdown(document_id: str):
     try:
         markdown = await assembly_service.export_document_markdown(document_id)
         return Response(content=markdown, media_type="text/markdown")
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{document_id}/export/docx")
+async def export_document_docx(document_id: str):
+    """Экспорт документа в DOCX (Microsoft Word)"""
+    try:
+        buffer = await assembly_service.export_document_docx(document_id)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f"attachment; filename={document_id}.docx"
+            }
+        )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
