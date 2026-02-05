@@ -1,0 +1,313 @@
+{
+  "dashboard": {
+    "title": "Dynamic Content Blocks API - Overview",
+    "tags": ["content-blocks", "api", "monitoring"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "HTTP Requests per Second",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[1m])",
+            "legendFormat": "{{method}} {{endpoint}} ({{status}})",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "reqps", "label": "Requests/sec"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "HTTP Request Latency (P95)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{method}} {{endpoint}} (P95)",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Latency"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Active HTTP Requests",
+        "type": "graph",
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "http_requests_in_progress",
+            "legendFormat": "{{method}} {{endpoint}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Requests"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Active Sessions & API Keys",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 8},
+        "targets": [
+          {
+            "expr": "active_sessions",
+            "legendFormat": "Active Sessions",
+            "refId": "A"
+          },
+          {
+            "expr": "api_keys_total",
+            "legendFormat": "API Keys",
+            "refId": "B"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Authentication Attempts",
+        "type": "graph",
+        "gridPos": {"h": 6, "w": 8, "x": 16, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(auth_attempts_total[5m])",
+            "legendFormat": "{{method}} - {{status}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Database Operations per Second",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 14},
+        "targets": [
+          {
+            "expr": "rate(db_operations_total[1m])",
+            "legendFormat": "{{database}} - {{operation}} ({{status}})",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "Operations/sec"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Database Operation Latency (P95)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 14},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(db_operation_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{database}} - {{operation}} (P95)",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Latency"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Blocks by Type",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 22},
+        "targets": [
+          {
+            "expr": "blocks_total",
+            "legendFormat": "{{type}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Block Operations",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 16, "x": 8, "y": 22},
+        "targets": [
+          {
+            "expr": "rate(blocks_created_total[5m])",
+            "legendFormat": "Created - {{type}}",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(blocks_updated_total[5m])",
+            "legendFormat": "Updated - {{type}}",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(blocks_deleted_total[5m])",
+            "legendFormat": "Deleted - {{type}}",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Search Performance",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 30},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(search_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{type}} search (P95)",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Latency"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 11,
+        "title": "ML Operations per Minute",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 30},
+        "targets": [
+          {
+            "expr": "rate(ml_requests_total[1m]) * 60",
+            "legendFormat": "{{operation}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "Operations/min"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Cache Hit Rate",
+        "type": "gauge",
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 38},
+        "targets": [
+          {
+            "expr": "rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m]))",
+            "legendFormat": "Hit Rate",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 0.5, "color": "yellow"},
+                {"value": 0.8, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 13,
+        "title": "Cache Metrics",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 38},
+        "targets": [
+          {
+            "expr": "cache_size_bytes",
+            "legendFormat": "Cache Size",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(cache_evictions_total[5m])",
+            "legendFormat": "Evictions/sec",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes"
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "Evictions/sec"},
+              "properties": [{"id": "unit", "value": "ops"}]
+            }
+          ]
+        }
+      },
+      {
+        "id": 14,
+        "title": "Rate Limit Violations",
+        "type": "graph",
+        "gridPos": {"h": 6, "w": 8, "x": 16, "y": 38},
+        "targets": [
+          {
+            "expr": "rate(rate_limit_exceeded_total[5m])",
+            "legendFormat": "{{identifier_type}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Audit Events by Severity",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 44},
+        "targets": [
+          {
+            "expr": "rate(audit_events_total[5m])",
+            "legendFormat": "{{severity}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "Error Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 44},
+        "targets": [
+          {
+            "expr": "rate(errors_total[5m])",
+            "legendFormat": "{{type}} - {{endpoint}}",
+            "refId": "A"
+          }
+        ],
+        "alert": {
+          "name": "High Error Rate",
+          "conditions": [
+            {
+              "evaluator": {"params": [10], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Error rate is above threshold",
+          "name": "High Error Rate",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      }
+    ]
+  }
+}

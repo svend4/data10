@@ -8,8 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Dynamic Content Blocks API",
-    description="Модульная система для работы со структурированным контентом",
-    version="1.0.0",
+    description="Модульная система для работы со структурированным контентом с AI/ML, аутентификацией и rate limiting",
+    version="4.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -129,8 +129,11 @@ async def health_check():
 
 
 # Подключить роутеры
-from app.api import blocks, documents, search, versions, bulk, ml
+from app.api import blocks, documents, search, versions, bulk, ml, auth, audit, metrics
 
+app.include_router(metrics.router)  # No prefix for /metrics
+app.include_router(auth.router, prefix="/api", tags=["authentication"])
+app.include_router(audit.router, prefix="/api", tags=["audit"])
 app.include_router(blocks.router, prefix="/api/blocks", tags=["blocks"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
@@ -141,6 +144,19 @@ app.include_router(ml.router, prefix="/api/ml", tags=["ml"])
 
 # Lifecycle events
 from app.services import block_service, search_service, cache_service, version_service, nlp_service
+from app.services.auth_service import auth_service
+from app.services.audit_service import audit_service
+from app.middleware.rate_limiter import RateLimiter, RateLimitMiddleware
+from app.middleware.audit_middleware import AuditMiddleware
+from app.middleware.metrics_middleware import MetricsMiddleware
+
+# Initialize rate limiter (will use Redis if available)
+rate_limiter = RateLimiter(default_limit=100, window_seconds=60)
+
+# Add middleware (order matters: metrics first, then audit, then rate limiting)
+app.add_middleware(MetricsMiddleware)
+app.add_middleware(AuditMiddleware, log_reads=False)
+app.add_middleware(RateLimitMiddleware, rate_limiter=rate_limiter)
 
 
 @app.on_event("startup")
@@ -151,6 +167,21 @@ async def startup_event():
     await cache_service.initialize()
     await version_service.initialize()
     await nlp_service.initialize()
+    await auth_service.initialize()
+    await audit_service.initialize()
+
+    # Start rate limiter background tasks
+    await rate_limiter.start()
+
+    # Try to connect rate limiter to Redis
+    try:
+        from app.repositories import redis_repo
+        if redis_repo.client:
+            rate_limiter.redis = redis_repo.client
+            print("✅ Rate limiter using Redis backend")
+    except Exception:
+        print("⚠️  Rate limiter using in-memory backend")
+
     print("✅ Services initialized")
 
 
@@ -162,6 +193,12 @@ async def shutdown_event():
     await cache_service.shutdown()
     await version_service.shutdown()
     await nlp_service.shutdown()
+    await auth_service.shutdown()
+    await audit_service.shutdown()
+
+    # Stop rate limiter background tasks
+    await rate_limiter.stop()
+
     print("👋 Services shutdown")
 
 
