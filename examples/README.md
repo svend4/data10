@@ -165,6 +165,159 @@ Exporting to formats...
 
 ---
 
+### 04_ml_text_analysis.py
+
+**Purpose**: Demonstrates AI/ML text analysis features (Phase 3).
+
+**What it does**:
+- Performs comprehensive text analysis on German legal text
+- Extracts text statistics (word/sentence count)
+- Identifies keywords
+- Performs Named Entity Recognition (NER)
+- Extracts legal references (§, Art., Abs.)
+- Tokenizes and lemmatizes text
+- Generates POS (Part-of-Speech) tags
+- Creates semantic embeddings (384-dimensional vectors)
+- Auto-classifies text by type and category
+- Summarizes long text
+
+**Prerequisites**:
+```bash
+# Install NLP models first
+python scripts/setup_nlp_models.py
+```
+
+**Usage**:
+```bash
+python examples/04_ml_text_analysis.py
+```
+
+**Expected output**:
+```
+==================================================================
+  Example 4: ML Text Analysis
+==================================================================
+
+📦 Initializing NLP service...
+✅ NLP service ready!
+
+==================================================================
+1. TEXT STATISTICS
+==================================================================
+
+📊 Statistics:
+  • Total words: 62
+  • Total sentences: 4
+  • Unique words: 49
+  • Average word length: 6.8 characters
+  • Average sentence length: 15.5 words
+
+==================================================================
+2. KEYWORD EXTRACTION
+==================================================================
+
+🔑 Top keywords:
+  1. Leistungen
+  2. Teilhabe
+  3. Rehabilitation
+  4. Behinderung
+  ...
+
+==================================================================
+3. NAMED ENTITY RECOGNITION (NER)
+==================================================================
+
+🏷️  Entities found:
+  • Berlin (LOC)
+    Position: 245-251
+  • Berliner Senatsverwaltung (ORG)
+    Position: 253-280
+  ...
+```
+
+**Key concepts**:
+- NLP processing with spaCy
+- Semantic embeddings with sentence-transformers
+- Named Entity Recognition (NER)
+- Legal text pattern matching
+- Auto-classification (types & categories)
+- Extractive summarization
+
+---
+
+### 05_ml_semantic_search.py
+
+**Purpose**: Demonstrates semantic search and similarity features (Phase 3).
+
+**What it does**:
+- Generates semantic embeddings for multiple blocks
+- Calculates similarity scores between texts
+- Performs batch similarity search
+- Finds most similar blocks for natural language queries
+- Creates similarity matrices
+- Demonstrates content clustering by similarity
+
+**Prerequisites**:
+```bash
+# Install NLP models and import sample data
+python scripts/setup_nlp_models.py
+python scripts/quickstart.py
+```
+
+**Usage**:
+```bash
+python examples/05_ml_semantic_search.py
+```
+
+**Expected output**:
+```
+==================================================================
+  Example 5: ML Semantic Search
+==================================================================
+
+📦 Initializing services...
+✅ Services ready!
+
+==================================================================
+1. GENERATING EMBEDDINGS
+==================================================================
+
+🔄 Generating embeddings for all blocks...
+  ✅ block1: § 5 Leistungen zur Teilhabe
+  ✅ block2: § 29 Persönliches Budget
+  ...
+
+✅ Generated 5 embeddings (384 dimensions each)
+
+==================================================================
+2. SEMANTIC SIMILARITY
+==================================================================
+
+🔍 Query block: § 5 Leistungen zur Teilhabe
+   Content: Menschen mit Behinderung haben Anspruch auf Leistungen...
+
+📊 Similarity scores:
+
+  § 42 Leistungen zur Teilhabe am Arbeitsleben
+    Similarity: 0.8542 🟢
+    Zur Teilhabe am Arbeitsleben werden Leistungen erbracht...
+
+  § 29 Persönliches Budget
+    Similarity: 0.7234 🟢
+    Auf Antrag werden Leistungen zur Teilhabe als Persönliches Budget...
+  ...
+```
+
+**Key concepts**:
+- Semantic embeddings (384-dim vectors)
+- Cosine similarity (0-1 scale)
+- Batch processing for efficiency
+- Natural language queries
+- Similarity thresholds
+- Content clustering
+
+---
+
 ## Complete Workflow Example
 
 Here's a typical workflow combining all examples:
@@ -217,6 +370,36 @@ ls -lh exports/
 - `POST /api/templates` - Create template
 - `GET /api/templates/{template_id}` - Get template
 - `GET /api/templates` - List templates
+
+### Search & ML (Phase 2 & 3)
+
+- `POST /api/search` - Full-text search
+- `GET /api/search/suggest` - Autocomplete suggestions
+- `GET /api/search/similar/{block_id}` - Find similar blocks
+- `POST /api/search/semantic` - Semantic search (AI-powered)
+- `POST /api/search/reindex` - Reindex with embeddings
+- `GET /api/ml/status` - NLP service status
+- `POST /api/ml/analyze` - Full text analysis
+- `POST /api/ml/embedding` - Generate embeddings
+- `POST /api/ml/similarity` - Calculate similarity
+- `POST /api/ml/ner` - Named Entity Recognition
+- `POST /api/ml/classify` - Auto-classify blocks
+- `POST /api/ml/summarize` - Text summarization
+
+### Version Control (Phase 2)
+
+- `GET /api/versions/{block_id}/history` - Version history
+- `GET /api/versions/{block_id}/current` - Current version
+- `POST /api/versions/{block_id}/restore` - Restore version
+- `GET /api/versions/{block_id}/compare` - Compare versions
+
+### Bulk Operations (Phase 2)
+
+- `POST /api/bulk/create` - Bulk create blocks
+- `POST /api/bulk/update` - Bulk update blocks
+- `POST /api/bulk/delete` - Bulk delete blocks
+- `POST /api/bulk/export` - Export blocks as JSON
+- `POST /api/bulk/import` - Import blocks from file
 
 ## Troubleshooting
 
