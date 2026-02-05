@@ -39,6 +39,13 @@ from .document import (
     DocumentResponse,
 )
 
+from .version import (
+    BlockVersion,
+    VersionDiff,
+    BlockVersionCreate,
+    VersionHistory,
+)
+
 __all__ = [
     # Block
     "Block",
@@ -71,4 +78,9 @@ __all__ = [
     "DocumentCreate",
     "DocumentUpdate",
     "DocumentResponse",
+    # Version
+    "BlockVersion",
+    "VersionDiff",
+    "BlockVersionCreate",
+    "VersionHistory",
 ]

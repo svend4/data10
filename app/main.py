@@ -129,15 +129,16 @@ async def health_check():
 
 
 # Подключить роутеры
-from app.api import blocks, documents, search
+from app.api import blocks, documents, search, versions
 
 app.include_router(blocks.router, prefix="/api/blocks", tags=["blocks"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
+app.include_router(versions.router, prefix="/api/versions", tags=["versions"])
 
 
 # Lifecycle events
-from app.services import block_service, search_service, cache_service
+from app.services import block_service, search_service, cache_service, version_service
 
 
 @app.on_event("startup")
@@ -146,6 +147,7 @@ async def startup_event():
     await block_service.initialize()
     await search_service.initialize()
     await cache_service.initialize()
+    await version_service.initialize()
     print("✅ Services initialized")
 
 
@@ -155,6 +157,7 @@ async def shutdown_event():
     await block_service.shutdown()
     await search_service.shutdown()
     await cache_service.shutdown()
+    await version_service.shutdown()
     print("👋 Services shutdown")
 
 

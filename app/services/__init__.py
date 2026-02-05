@@ -7,6 +7,7 @@ from .rule_engine import RuleEngine, rule_engine
 from .assembly_service import AssemblyService, assembly_service
 from .search_service import SearchService, search_service
 from .cache_service import CacheService, cache_service
+from .version_service import VersionService, version_service
 
 __all__ = [
     "BlockService",
@@ -14,9 +15,11 @@ __all__ = [
     "AssemblyService",
     "SearchService",
     "CacheService",
+    "VersionService",
     "block_service",
     "rule_engine",
     "assembly_service",
     "search_service",
     "cache_service",
+    "version_service",
 ]
