@@ -48,6 +48,47 @@ Tests for `AssemblyService` document assembly:
 - ✅ Export non-existent document error handling
 - ✅ Block ordering in assembled documents
 
+### test_ml_service.py
+
+Tests for `NLPService` AI/ML functionality:
+- ✅ NLP service initialization and shutdown
+- ✅ Text tokenization
+- ✅ Lemmatization
+- ✅ Stopword removal
+- ✅ POS (Part-of-Speech) tagging
+- ✅ Named Entity Recognition (NER)
+- ✅ Legal reference extraction (§, Art., Abs.)
+- ✅ Semantic embedding generation (single & batch)
+- ✅ Embedding consistency
+- ✅ Cosine similarity calculation
+- ✅ Find most similar texts
+- ✅ Block type classification (right, definition, procedure, etc.)
+- ✅ Category classification (health, employment, etc.)
+- ✅ Full block classification
+- ✅ Frequency-based summarization
+- ✅ Position-based summarization
+- ✅ Summary points generation
+- ✅ Text statistics (word count, sentences, etc.)
+- ✅ Keyword extraction
+- ✅ Error handling (empty text, long text, special characters)
+
+### test_ml_api.py
+
+Tests for ML REST API endpoints:
+- ✅ GET /api/ml/status - NLP service status
+- ✅ POST /api/ml/analyze - Full text analysis
+- ✅ POST /api/ml/embedding - Generate embeddings
+- ✅ POST /api/ml/similarity - Calculate text similarity
+- ✅ POST /api/ml/ner - Named Entity Recognition
+- ✅ POST /api/ml/classify - Auto-classify blocks
+- ✅ POST /api/ml/summarize - Text summarization
+- ✅ POST /api/ml/semantic-search - Semantic search in blocks
+- ✅ POST /api/search/semantic - Elasticsearch semantic search
+- ✅ API error handling (503, 422 errors)
+- ✅ Invalid JSON handling
+- ✅ Malformed request handling
+- ✅ Full workflow integration tests
+
 ## Prerequisites
 
 ### Required Services
@@ -56,11 +97,19 @@ Integration tests require the following services to be running:
 
 1. **MongoDB** - Document storage
 2. **Neo4j** - Graph database for relationships
+3. **NLP Models** (optional, for ML tests) - spaCy and sentence-transformers
 
 Start services with Docker Compose:
 ```bash
 docker-compose up -d mongodb neo4j
 ```
+
+Install NLP models for ML tests:
+```bash
+python scripts/setup_nlp_models.py
+```
+
+**Note**: ML tests will be skipped automatically if NLP models are not installed.
 
 ### Environment Variables
 
@@ -91,6 +140,12 @@ pytest tests/integration/test_rule_engine.py -v
 
 # Test AssemblyService
 pytest tests/integration/test_assembly_service.py -v
+
+# Test ML/NLP Service
+pytest tests/integration/test_ml_service.py -v
+
+# Test ML API endpoints
+pytest tests/integration/test_ml_api.py -v
 ```
 
 ### Run Specific Test
@@ -221,8 +276,12 @@ Expected run time: **30-60 seconds** for full suite
 
 ## Future Improvements
 
-- [ ] Add tests for Elasticsearch integration
+- [x] Add tests for ML/NLP Service (Phase 3)
+- [x] Add tests for ML API endpoints (Phase 3)
+- [ ] Add tests for Elasticsearch integration (full-text search)
 - [ ] Add tests for Redis caching
+- [ ] Add tests for version control API
+- [ ] Add tests for bulk operations
 - [ ] Add tests for concurrent operations
 - [ ] Add performance benchmarks
 - [ ] Add load testing scenarios
