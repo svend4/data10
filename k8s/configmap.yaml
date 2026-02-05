@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: content-blocks-config
+  namespace: content-blocks
+data:
+  # MongoDB
+  MONGODB_URI: "mongodb://mongodb:27017"
+  MONGODB_DB: "content_blocks"
+
+  # Neo4j
+  NEO4J_URI: "bolt://neo4j:7687"
+
+  # Redis
+  REDIS_URL: "redis://redis:6379"
+
+  # Elasticsearch
+  ELASTICSEARCH_URL: "http://elasticsearch:9200"
+
+  # Application
+  API_VERSION: "4.0.0"
+  LOG_LEVEL: "INFO"
+
+  # Rate Limiting
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_PER_MINUTE: "100"
+
+  # Audit
+  AUDIT_LOG_ENABLED: "true"
+  AUDIT_LOG_RETENTION_DAYS: "90"
