@@ -129,12 +129,13 @@ async def health_check():
 
 
 # Подключить роутеры
-from app.api import blocks, documents, search, versions
+from app.api import blocks, documents, search, versions, bulk
 
 app.include_router(blocks.router, prefix="/api/blocks", tags=["blocks"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
 app.include_router(versions.router, prefix="/api/versions", tags=["versions"])
+app.include_router(bulk.router, prefix="/api/bulk", tags=["bulk"])
 
 
 # Lifecycle events
