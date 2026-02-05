@@ -37,7 +37,7 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint для мониторинга"""
-    from app.repositories import mongo_repo, neo4j_repo
+    from app.repositories import mongo_repo, neo4j_repo, redis_repo, es_repo
     import time
 
     start_time = time.time()
@@ -83,6 +83,40 @@ async def health_check():
             "error": str(e)
         }
 
+    # Check Redis
+    try:
+        redis_start = time.time()
+        redis_repo.ping()
+        redis_latency = (time.time() - redis_start) * 1000
+        services_status["redis"] = {
+            "status": "up",
+            "latency_ms": round(redis_latency, 2)
+        }
+    except Exception as e:
+        # Redis is optional, don't mark overall as unhealthy
+        services_status["redis"] = {
+            "status": "down",
+            "error": str(e),
+            "optional": True
+        }
+
+    # Check Elasticsearch
+    try:
+        es_start = time.time()
+        es_repo.client.ping()
+        es_latency = (time.time() - es_start) * 1000
+        services_status["elasticsearch"] = {
+            "status": "up",
+            "latency_ms": round(es_latency, 2)
+        }
+    except Exception as e:
+        # Elasticsearch is optional, don't mark overall as unhealthy
+        services_status["elasticsearch"] = {
+            "status": "down",
+            "error": str(e),
+            "optional": True
+        }
+
     # Calculate total response time
     total_latency = (time.time() - start_time) * 1000
 
@@ -95,20 +129,23 @@ async def health_check():
 
 
 # Подключить роутеры
-from app.api import blocks, documents
+from app.api import blocks, documents, search
 
 app.include_router(blocks.router, prefix="/api/blocks", tags=["blocks"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
+app.include_router(search.router, prefix="/api/search", tags=["search"])
 
 
 # Lifecycle events
-from app.services import block_service
+from app.services import block_service, search_service, cache_service
 
 
 @app.on_event("startup")
 async def startup_event():
     """Инициализация при запуске"""
     await block_service.initialize()
+    await search_service.initialize()
+    await cache_service.initialize()
     print("✅ Services initialized")
 
 
@@ -116,6 +153,8 @@ async def startup_event():
 async def shutdown_event():
     """Очистка при остановке"""
     await block_service.shutdown()
+    await search_service.shutdown()
+    await cache_service.shutdown()
     print("👋 Services shutdown")
 
 
