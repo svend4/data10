@@ -14,6 +14,8 @@
 - 🔗 Граф зависимостей и семантических связей (Neo4j)
 - 🤖 Автоматическая сборка документов по правилам
 - 🔍 Полнотекстовый поиск с Elasticsearch (fuzzy, highlights, suggestions)
+- 🧠 **AI/ML интеграция**: Semantic search, NER, auto-classification, summarization
+- 🎯 **Semantic embeddings** (384-dim) для концептуального поиска
 - 📊 Условная логика (rule engine) с операторами и группами
 - 🌳 Динамическая иерархия и вложенность
 - 🔄 Версионирование с полной историей изменений
@@ -32,16 +34,16 @@
 ## Архитектура
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│              FastAPI REST API (OpenAPI/Swagger)            │
-│   /blocks  /documents  /search  /versions  /bulk          │
-├────────────────────────────────────────────────────────────┤
-│  BlockService │ AssemblyService │ SearchService │ Cache   │
-│  RuleEngine   │ VersionService  │ ExportService │         │
-├────────────────────────────────────────────────────────────┤
-│  Neo4j Graph │ MongoDB Docs │ Elasticsearch │ Redis Cache │
-│  (Relations) │ (Blocks/Docs)│  (Search)     │ (TTL Cache) │
-└────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│             FastAPI REST API (OpenAPI/Swagger)                  │
+│   /blocks  /documents  /search  /versions  /bulk  /ml          │
+├─────────────────────────────────────────────────────────────────┤
+│  BlockService │ AssemblyService │ SearchService │ CacheService │
+│  RuleEngine   │ VersionService  │ ExportService │ NLPService   │
+├─────────────────────────────────────────────────────────────────┤
+│  Neo4j Graph │ MongoDB Docs │ Elasticsearch + Embeddings       │
+│  (Relations) │ (Blocks/Docs)│  (Search + kNN) │ Redis Cache   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 **Технологический стек:**
@@ -249,7 +251,57 @@ curl "http://localhost:8000/api/documents/{document_id}/export/docx" \
   --output widerspruch.docx
 ```
 
-### 6. Python примеры
+### 6. AI/ML операции
+```bash
+# Semantic search (поиск по смыслу, а не ключевым словам)
+curl -X POST "http://localhost:8000/api/search/semantic" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Welche Leistungen gibt es für Menschen mit Behinderung?",
+    "source": "SGB IX",
+    "limit": 5,
+    "min_score": 0.6
+  }'
+
+# Auto-classification блока
+curl -X POST "http://localhost:8000/api/ml/classify" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Menschen mit Behinderung haben Anspruch auf Leistungen...",
+    "title": "§ 5 Leistungen zur Teilhabe"
+  }'
+
+# Summarization (резюмирование)
+curl -X POST "http://localhost:8000/api/ml/summarize" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Long legal text...",
+    "max_sentences": 3,
+    "method": "frequency"
+  }'
+
+# Named Entity Recognition
+curl -X POST "http://localhost:8000/api/ml/ner" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Nach § 5 SGB IX haben Menschen mit Behinderung in Berlin..."
+  }'
+
+# Text analysis (полный анализ)
+curl -X POST "http://localhost:8000/api/ml/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Your German legal text here..."}'
+
+# Similarity между текстами
+curl -X POST "http://localhost:8000/api/ml/similarity" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text1": "Persönliches Budget",
+    "text2": "Individuelles Budget für Teilhabe"
+  }'
+```
+
+### 7. Python примеры
 ```python
 # См. полные примеры в examples/
 python examples/01_create_blocks.py      # Создание блоков
@@ -299,20 +351,39 @@ python examples/03_export_document.py    # Экспорт в форматы
 **Commits**: e774bda (Search & Cache), f8437fa (Versioning), e498d8b (Bulk Ops)
 
 **Statistics**:
-- **30+ API endpoints** across 5 routers
-- **6 services**: Block, Rule, Assembly, Search, Cache, Version
-- **4 databases**: Neo4j, MongoDB, Elasticsearch, Redis
+- **38+ API endpoints** across 6 routers
+- **7 services**: Block, Rule, Assembly, Search, Cache, Version, NLP
+- **4 databases**: Neo4j, MongoDB, Elasticsearch (with embeddings), Redis
 - **10+ scripts** для automation
 - **60+ integration tests**
 
-### Phase 3: AI/ML Integration 📋 Planned (Q2 2026)
-- [ ] Transformer models для семантического поиска
-- [ ] Автоматическая классификация блоков
-- [ ] Topic modeling с BERTopic
-- [ ] Multi-language support (EN, DE)
-- [ ] NER для извлечения сущностей
-- [ ] Автоматическое резюмирование
-- [ ] Similarity scoring с embeddings
+### Phase 3: AI/ML Integration ✅ Completed (Feb 2026)
+- [x] **NLP Service** с spaCy (de_core_news_lg)
+  - Немецкий языковой анализ для юридических текстов
+  - Tokenization, lemmatization, POS tagging
+  - Named Entity Recognition (NER)
+  - Legal reference extraction (§, Art., Abs., Satz)
+- [x] **Semantic embeddings** (sentence-transformers)
+  - 384-dimensional vectors для текстов
+  - Batch generation для производительности
+  - Multilingual model (German + English)
+- [x] **Semantic search** с Elasticsearch
+  - kNN search на embedding векторах
+  - Cosine similarity scoring (0-1)
+  - Hybrid search (keyword + semantic)
+- [x] **Auto-classification** (rule-based)
+  - Block types: paragraph, definition, procedure, requirement, right, obligation, sanction
+  - Categories: employment, health, education, social_security, participation, administration
+- [x] **Extractive summarization**
+  - Frequency-based: важнейшие предложения
+  - Position-based: первые N предложений
+  - Summary points generation
+- [x] **Similarity scoring** с embeddings
+  - Calculate text similarity (0-1)
+  - Find most similar blocks
+- [x] **ML API endpoints**: /analyze, /embedding, /similarity, /semantic-search, /ner, /classify, /summarize
+
+**Commits**: 6c5c16a (NLP & Semantic Search)
 
 ### Phase 4: Production & Scale 📋 Planned (Q3 2026)
 - [ ] Web UI (React/Vue)
@@ -378,15 +449,17 @@ MIT License - см. [LICENSE](LICENSE)
 
 ---
 
-**Статус проекта**: Active Development | Phase 2 Complete ✅
-**Версия**: 2.0.0 (Phase 2: Advanced Features)
+**Статус проекта**: Active Development | Phase 3 Complete ✅
+**Версия**: 3.0.0 (Phase 3: AI/ML Integration)
 **Последнее обновление**: 05.02.2026
 
-**Основные достижения Phase 2**:
-- 🔍 Full-text search with Elasticsearch
-- ⚡ Redis caching layer
-- 🔄 Complete version control system
-- 📦 Bulk operations API
-- 🚀 Production-ready with 30+ API endpoints
+**Основные достижения Phase 3**:
+- 🧠 NLP Service с spaCy для немецкого языка
+- 🎯 Semantic search с embeddings (384-dim vectors)
+- 🤖 Auto-classification блоков (types & categories)
+- 📝 Extractive summarization для юридических текстов
+- 🔍 Named Entity Recognition (NER)
+- 📊 8 новых ML API endpoints
+- 🚀 Production-ready with 38+ API endpoints
 
-**Следующий этап**: Phase 3 - AI/ML Integration
+**Следующий этап**: Phase 4 - Production & Scale (Web UI, Auth, Monitoring)
