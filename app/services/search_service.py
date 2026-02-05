@@ -1,6 +1,7 @@
 """
 Search Service for Full-Text Search
 Provides high-level search functionality using Elasticsearch
+Includes semantic search with embeddings
 """
 
 from typing import List, Dict, Any, Optional
@@ -28,20 +29,33 @@ class SearchService:
         except Exception as e:
             print(f"⚠️  Elasticsearch index initialization failed: {e}")
 
-    async def index_block(self, block: Block) -> bool:
+    async def index_block(self, block: Block, generate_embedding: bool = True) -> bool:
         """
         Index a single block
 
         :param block: Block to index
+        :param generate_embedding: Whether to generate semantic embedding
         :return: Success status
         """
-        return self.es_repo.index_block(block)
+        embedding = None
 
-    async def index_all_blocks(self) -> Dict[str, int]:
+        if generate_embedding:
+            # Import here to avoid circular dependency
+            from app.services.nlp_service import nlp_service
+
+            if nlp_service.is_ready():
+                # Create text for embedding: combine title and content
+                text = f"{block.title} {block.content}"
+                embedding = nlp_service.generate_embedding(text)
+
+        return self.es_repo.index_block(block, embedding=embedding)
+
+    async def index_all_blocks(self, generate_embeddings: bool = True) -> Dict[str, int]:
         """
         Index all blocks from MongoDB to Elasticsearch
 
         Useful for initial indexing or re-indexing
+        :param generate_embeddings: Whether to generate semantic embeddings
         :return: Stats (total, indexed, failed)
         """
         # Get all blocks from MongoDB
@@ -50,8 +64,31 @@ class SearchService:
         if not blocks:
             return {"total": 0, "indexed": 0, "failed": 0}
 
-        # Bulk index
-        result = self.es_repo.bulk_index_blocks(blocks)
+        embeddings_dict = None
+
+        if generate_embeddings:
+            # Import here to avoid circular dependency
+            from app.services.nlp_service import nlp_service
+
+            if nlp_service.is_ready():
+                print(f"🔄 Generating embeddings for {len(blocks)} blocks...")
+                # Prepare texts for batch embedding
+                texts = [f"{block.title} {block.content}" for block in blocks]
+
+                # Generate embeddings in batch (more efficient)
+                embeddings_list = nlp_service.generate_embeddings_batch(texts)
+
+                if embeddings_list:
+                    # Create mapping: block_id -> embedding
+                    embeddings_dict = {
+                        blocks[i].id: embeddings_list[i]
+                        for i in range(len(blocks))
+                        if i < len(embeddings_list)
+                    }
+                    print(f"✅ Generated {len(embeddings_dict)} embeddings")
+
+        # Bulk index with embeddings
+        result = self.es_repo.bulk_index_blocks(blocks, embeddings=embeddings_dict)
 
         return {
             "total": len(blocks),
@@ -102,6 +139,58 @@ class SearchService:
             filters=filters,
             limit=limit,
             offset=offset
+        )
+
+    async def semantic_search(
+        self,
+        query: str,
+        block_type: Optional[str] = None,
+        source: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        category: Optional[str] = None,
+        limit: int = 10,
+        min_score: float = 0.5
+    ) -> List[Dict[str, Any]]:
+        """
+        Semantic search using embedding similarity
+
+        :param query: Natural language query
+        :param block_type: Filter by block type
+        :param source: Filter by source
+        :param tags: Filter by tags
+        :param category: Filter by category
+        :param limit: Max results
+        :param min_score: Minimum similarity score (0-1)
+        :return: List of semantically similar blocks
+        """
+        # Import here to avoid circular dependency
+        from app.services.nlp_service import nlp_service
+
+        if not nlp_service.is_ready():
+            return []
+
+        # Generate embedding for query
+        query_embedding = nlp_service.generate_embedding(query)
+        if not query_embedding:
+            return []
+
+        # Build filters
+        filters = {}
+        if block_type:
+            filters["type"] = block_type
+        if source:
+            filters["source"] = source
+        if tags:
+            filters["tags"] = tags
+        if category:
+            filters["category"] = category
+
+        # Perform semantic search
+        return self.es_repo.search_blocks_by_embedding(
+            embedding=query_embedding,
+            filters=filters,
+            limit=limit,
+            min_score=min_score
         )
 
     async def suggest_titles(self, prefix: str, limit: int = 5) -> List[str]:
@@ -212,12 +301,13 @@ class SearchService:
         """
         return self.es_repo.delete_block(block_id)
 
-    async def reindex_block(self, block_id: str) -> bool:
+    async def reindex_block(self, block_id: str, generate_embedding: bool = True) -> bool:
         """
         Reindex a specific block
 
         Fetches from MongoDB and updates Elasticsearch index
         :param block_id: Block ID to reindex
+        :param generate_embedding: Whether to generate semantic embedding
         :return: Success status
         """
         # Get block from MongoDB
@@ -225,8 +315,8 @@ class SearchService:
         if not block:
             return False
 
-        # Reindex in Elasticsearch
-        return self.es_repo.index_block(block)
+        # Reindex in Elasticsearch with embedding
+        return await self.index_block(block, generate_embedding=generate_embedding)
 
     async def shutdown(self):
         """Clean up resources"""

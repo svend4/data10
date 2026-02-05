@@ -47,6 +47,24 @@ class SimilarBlocksResponse(BaseModel):
     reference_block_id: str
 
 
+class SemanticSearchRequest(BaseModel):
+    """Semantic search request model"""
+    query: str = Field(..., description="Natural language query")
+    type: Optional[str] = Field(None, description="Filter by block type")
+    source: Optional[str] = Field(None, description="Filter by source")
+    tags: Optional[List[str]] = Field(None, description="Filter by tags")
+    category: Optional[str] = Field(None, description="Filter by category")
+    limit: int = Field(10, ge=1, le=50, description="Max results")
+    min_score: float = Field(0.5, ge=0.0, le=1.0, description="Minimum similarity score")
+
+
+class SemanticSearchResponse(BaseModel):
+    """Semantic search response model"""
+    results: List[dict]
+    query: str
+    total: int
+
+
 class IndexStatsResponse(BaseModel):
     """Search index statistics"""
     index_name: str
@@ -206,6 +224,56 @@ async def get_similar_blocks(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/semantic", response_model=SemanticSearchResponse)
+async def semantic_search(request: SemanticSearchRequest):
+    """
+    Semantic search using AI embeddings
+
+    Searches for blocks by semantic meaning rather than exact keyword matches.
+    Uses neural embeddings to understand the meaning of your query and find
+    conceptually similar blocks.
+
+    Example:
+    ```json
+    {
+      "query": "Welche Leistungen gibt es für Menschen mit Behinderung?",
+      "source": "SGB IX",
+      "limit": 10,
+      "min_score": 0.6
+    }
+    ```
+
+    Returns blocks ranked by semantic similarity (0-1 score).
+
+    Note: Requires NLP service to be initialized with embeddings.
+    """
+    try:
+        results = await search_service.semantic_search(
+            query=request.query,
+            block_type=request.type,
+            source=request.source,
+            tags=request.tags,
+            category=request.category,
+            limit=request.limit,
+            min_score=request.min_score
+        )
+
+        if not results:
+            return SemanticSearchResponse(
+                results=[],
+                query=request.query,
+                total=0
+            )
+
+        return SemanticSearchResponse(
+            results=results,
+            query=request.query,
+            total=len(results)
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/legal/{law}", response_model=SearchResponse)
 async def search_by_legal_reference(
     law: str,
@@ -257,23 +325,30 @@ async def get_search_stats():
 
 
 @router.post("/reindex")
-async def reindex_all_blocks():
+async def reindex_all_blocks(
+    generate_embeddings: bool = Query(
+        True,
+        description="Generate semantic embeddings for all blocks"
+    )
+):
     """
     Reindex all blocks from MongoDB to Elasticsearch
 
     This operation:
     1. Fetches all blocks from MongoDB
-    2. Bulk indexes them to Elasticsearch
-    3. Returns statistics
+    2. Optionally generates semantic embeddings using NLP
+    3. Bulk indexes them to Elasticsearch
+    4. Returns statistics
 
     Useful for:
     - Initial setup
     - Rebuilding search index
     - Syncing after bulk updates
+    - Regenerating embeddings
 
     Example:
     ```
-    POST /api/search/reindex
+    POST /api/search/reindex?generate_embeddings=true
     ```
 
     Returns:
@@ -287,7 +362,9 @@ async def reindex_all_blocks():
     ```
     """
     try:
-        stats = await search_service.index_all_blocks()
+        stats = await search_service.index_all_blocks(
+            generate_embeddings=generate_embeddings
+        )
         return {
             "message": "Reindexing completed",
             **stats

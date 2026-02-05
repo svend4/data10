@@ -69,6 +69,13 @@ class ElasticsearchRepository:
                             "subcategory": {"type": "keyword"},
                             "language": {"type": "keyword"}
                         }
+                    },
+                    # Semantic search embedding vector
+                    "embedding": {
+                        "type": "dense_vector",
+                        "dims": 384,  # paraphrase-multilingual-MiniLM-L12-v2 dimension
+                        "index": True,
+                        "similarity": "cosine"
                     }
                 }
             },
@@ -89,11 +96,12 @@ class ElasticsearchRepository:
         self.client.indices.create(index=self.index_name, body=mappings)
         return True
 
-    def index_block(self, block: Block) -> bool:
+    def index_block(self, block: Block, embedding: Optional[List[float]] = None) -> bool:
         """
         Index a block for search
 
         :param block: Block to index
+        :param embedding: Optional semantic embedding vector
         :return: Success status
         """
         try:
@@ -116,6 +124,10 @@ class ElasticsearchRepository:
                     "language": block.metadata.language if block.metadata else "de"
                 }
             }
+
+            # Add embedding if provided
+            if embedding:
+                doc["embedding"] = embedding
 
             self.client.index(
                 index=self.index_name,
@@ -339,31 +351,117 @@ class ElasticsearchRepository:
             print(f"Similar blocks error: {e}")
             return []
 
-    def bulk_index_blocks(self, blocks: List[Block]) -> Dict[str, int]:
+    def search_blocks_by_embedding(
+        self,
+        embedding: List[float],
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10,
+        min_score: float = 0.5
+    ) -> List[Dict[str, Any]]:
+        """
+        Semantic search using embedding vector similarity
+
+        Uses kNN (k-nearest neighbors) search to find semantically similar blocks
+        :param embedding: Query embedding vector
+        :param filters: Optional filters (type, source, etc.)
+        :param limit: Max results
+        :param min_score: Minimum similarity score (0-1)
+        :return: List of similar blocks with scores
+        """
+        try:
+            # Build filter clauses
+            filter_clauses = []
+            if filters:
+                if "type" in filters:
+                    filter_clauses.append({"term": {"type": filters["type"]}})
+                if "source" in filters:
+                    filter_clauses.append({"term": {"source": filters["source"]}})
+                if "tags" in filters:
+                    filter_clauses.append({"terms": {"tags": filters["tags"]}})
+                if "category" in filters:
+                    filter_clauses.append({"term": {"metadata.category": filters["category"]}})
+
+            # Build kNN search query
+            search_body = {
+                "knn": {
+                    "field": "embedding",
+                    "query_vector": embedding,
+                    "k": limit,
+                    "num_candidates": limit * 10,  # Search space for kNN
+                }
+            }
+
+            # Add filters if present
+            if filter_clauses:
+                search_body["knn"]["filter"] = {
+                    "bool": {"must": filter_clauses}
+                }
+
+            response = self.client.search(
+                index=self.index_name,
+                body=search_body,
+                size=limit
+            )
+
+            results = []
+            for hit in response["hits"]["hits"]:
+                score = hit["_score"]
+                # Filter by minimum score
+                if score < min_score:
+                    continue
+
+                results.append({
+                    "id": hit["_source"]["id"],
+                    "title": hit["_source"]["title"],
+                    "content": hit["_source"]["content"],
+                    "type": hit["_source"]["type"],
+                    "source": hit["_source"]["source"],
+                    "tags": hit["_source"]["tags"],
+                    "score": score,
+                    "similarity": score  # Cosine similarity (0-1)
+                })
+
+            return results
+        except Exception as e:
+            print(f"Semantic search error: {e}")
+            return []
+
+    def bulk_index_blocks(
+        self,
+        blocks: List[Block],
+        embeddings: Optional[Dict[str, List[float]]] = None
+    ) -> Dict[str, int]:
         """
         Bulk index multiple blocks
 
         :param blocks: List of blocks to index
+        :param embeddings: Optional dict mapping block_id -> embedding vector
         :return: Stats (success, failed)
         """
         from elasticsearch.helpers import bulk
 
         actions = []
         for block in blocks:
+            source_doc = {
+                "id": block.id,
+                "type": block.type,
+                "title": block.title,
+                "content": block.content,
+                "source": block.source,
+                "level": block.level,
+                "tags": block.metadata.tags if block.metadata else [],
+                "created_at": block.created_at.isoformat(),
+                "version": block.version
+            }
+
+            # Add embedding if provided
+            if embeddings and block.id in embeddings:
+                source_doc["embedding"] = embeddings[block.id]
+
             action = {
                 "_index": self.index_name,
                 "_id": block.id,
-                "_source": {
-                    "id": block.id,
-                    "type": block.type,
-                    "title": block.title,
-                    "content": block.content,
-                    "source": block.source,
-                    "level": block.level,
-                    "tags": block.metadata.tags if block.metadata else [],
-                    "created_at": block.created_at.isoformat(),
-                    "version": block.version
-                }
+                "_source": source_doc
             }
             actions.append(action)
 
