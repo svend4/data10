@@ -84,8 +84,52 @@ async def check_services() -> bool:
         print("\n💡 Start services with: docker-compose up -d")
         return False
 
-    print("\n✅ All services are healthy!")
+    print("\n✅ All core services are healthy!")
     return True
+
+
+async def check_nlp_models():
+    """
+    Check if NLP models are available (optional)
+
+    This is not a blocking check - the system works without ML features
+    """
+    print("\n🧠 Checking AI/ML models (Phase 3 features):")
+
+    try:
+        # Check spaCy model
+        import spacy
+        try:
+            nlp = spacy.load("de_core_news_lg")
+            print("   ✅ spaCy German model (de_core_news_lg) is installed")
+        except OSError:
+            try:
+                nlp = spacy.load("de_core_news_md")
+                print("   ⚠️  Using fallback spaCy model (de_core_news_md)")
+            except OSError:
+                try:
+                    nlp = spacy.load("de_core_news_sm")
+                    print("   ⚠️  Using minimal spaCy model (de_core_news_sm)")
+                except OSError:
+                    print("   ❌ No German spaCy model found")
+                    print("      Install with: python -m spacy download de_core_news_lg")
+                    print("      Or run: python scripts/setup_nlp_models.py")
+                    return False
+
+        # Check sentence-transformers
+        from sentence_transformers import SentenceTransformer
+        model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+        print("   ✅ Sentence Transformers model is ready")
+
+        print("\n✅ AI/ML models are ready!")
+        print("   You can use semantic search, NER, classification, and summarization.")
+        return True
+
+    except Exception as e:
+        print(f"   ⚠️  AI/ML models not fully available: {e}")
+        print("   Note: This is optional - system works without ML features")
+        print("   To enable ML: python scripts/setup_nlp_models.py")
+        return False
 
 
 async def import_sample_data(skip_import: bool = False) -> bool:
@@ -391,6 +435,9 @@ async def run_quickstart(skip_import: bool = False, skip_demo: bool = False):
         await block_service.shutdown()
         return False
 
+    # Step 1.5: Check NLP models (optional, non-blocking)
+    await check_nlp_models()
+
     # Step 2: Import sample data
     if not await import_sample_data(skip_import):
         print("\n⚠️  Warning: Sample data import failed, continuing anyway...")
@@ -429,6 +476,7 @@ async def run_quickstart(skip_import: bool = False, skip_demo: bool = False):
     print("   2. Open API docs: http://localhost:8000/docs")
     print("   3. Try the examples: python examples/01_create_blocks.py")
     print("   4. View exported documents in: exports/")
+    print("   5. Demo AI/ML features: python scripts/demo_ml_features.py")
 
     print("\n📚 Learn more:")
     print("   - README.md - Project overview")
