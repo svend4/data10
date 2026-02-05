@@ -1,0 +1,82 @@
+{
+  "blocks": [
+    {
+      "id": "sgb9_para5",
+      "type": "paragraph",
+      "title": "§5 Leistungsgruppen",
+      "content": "Die Leistungen zur Teilhabe umfassen die notwendigen Sozialleistungen...",
+      "source": "SGB IX",
+      "level": 1,
+      "metadata": {
+        "law": "SGB IX",
+        "paragraph": "5",
+        "absatz": null,
+        "language": "de",
+        "effective_date": "2018-01-01",
+        "tags": ["teilhabe", "leistungen", "rehabilitation"]
+      },
+      "relationships": {
+        "references": ["sgb9_para6", "sgb9_para29"],
+        "parent": null,
+        "children": ["sgb9_para5_abs1", "sgb9_para5_abs2"]
+      }
+    },
+    {
+      "id": "sgb9_para29",
+      "type": "paragraph",
+      "title": "§29 Persönliches Budget",
+      "content": "Auf Antrag der Leistungsberechtigten werden Leistungen zur Teilhabe durch die Leistungsform eines Persönlichen Budgets ausgeführt...",
+      "source": "SGB IX",
+      "level": 1,
+      "metadata": {
+        "law": "SGB IX",
+        "paragraph": "29",
+        "absatz": null,
+        "language": "de",
+        "effective_date": "2018-01-01",
+        "tags": ["persönliches budget", "teilhabe", "selbstbestimmung"]
+      },
+      "relationships": {
+        "references": ["sgb9_para5"],
+        "parent": null,
+        "children": ["sgb9_para29_abs1", "sgb9_para29_abs2"]
+      }
+    }
+  ],
+  "templates": [
+    {
+      "id": "widerspruch_template",
+      "name": "Widerspruch gegen Bescheid",
+      "description": "Vorlage für Widerspruch gegen Behördenbescheid",
+      "sections": [
+        {
+          "id": "header",
+          "type": "header",
+          "required": true,
+          "blocks": ["sender_address", "recipient_address", "date"]
+        },
+        {
+          "id": "subject",
+          "type": "subject",
+          "required": true,
+          "content": "Widerspruch gegen Bescheid vom {{ bescheid_date }}"
+        },
+        {
+          "id": "introduction",
+          "type": "content",
+          "required": true,
+          "content": "Hiermit lege ich Widerspruch gegen den Bescheid vom {{ bescheid_date }} ein."
+        },
+        {
+          "id": "legal_basis",
+          "type": "content",
+          "required": true,
+          "blocks": ["sgb9_para29"],
+          "conditions": {
+            "if": "budget_request == true"
+          }
+        }
+      ]
+    }
+  ]
+}
