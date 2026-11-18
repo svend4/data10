@@ -3,18 +3,26 @@ Security utilities for authentication and authorization
 """
 
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+import os
+import secrets
+from typing import Any, Dict, Optional
+
 import jwt
 from passlib.context import CryptContext
 from passlib.hash import bcrypt
-import secrets
 
 
 # Password hashing configuration
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT configuration
-SECRET_KEY = secrets.token_urlsafe(32)  # In production, load from environment
+# In production, JWT_SECRET_KEY (or SECRET_KEY) must be configured via environment.
+# Falls back to an ephemeral key for local single-process development and tests.
+SECRET_KEY = (
+    os.getenv("JWT_SECRET_KEY")
+    or os.getenv("SECRET_KEY")
+    or secrets.token_urlsafe(32)
+)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
@@ -124,7 +132,7 @@ def decode_token(token: str) -> Optional[Dict[str, Any]]:
         return payload
     except jwt.ExpiredSignatureError:
         return None
-    except jwt.JWTError:
+    except jwt.PyJWTError:
         return None
 
 
